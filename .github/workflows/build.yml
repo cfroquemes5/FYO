@@ -35,25 +35,20 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
           
-          # Configurar variables
+          # Configurar variables de entorno para el SDK
           echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=${HOME}/android-sdk/cmdline-tools/bin:${PATH}" >> $GITHUB_ENV
           
-          # Aceptar licencias e instalar componentes
+          # Aceptar licencias e instalar componentes del SDK
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           sdkmanager "ndk;27.2.12479018"
+          
+          # Verificar instalación del SDK y NDK
+          sdkmanager --list
 
-      - name: Verificar SDK y NDK
-        run: |
-          echo "ANDROID_HOME: ${ANDROID_HOME}"
-          echo "ANDROID_SDK_ROOT: ${ANDROID_SDK_ROOT}"
-          echo "ANDROID_NDK_HOME: ${ANDROID_NDK_HOME}"
-          ls -la ${ANDROID_HOME}
-          ls -la ${ANDROID_HOME}/ndk
-
-      - name: Instalar Buildozer
+      - name: Instalar Buildozer y Cython
         run: |
           pip install buildozer==1.5.0
           pip install cython==0.29.36
@@ -63,11 +58,14 @@ jobs:
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
+          # Asegurarse de que las rutas sean correctas
           echo "[app]" >> buildozer.spec
-          echo "android.ndk_path = ${ANDROID_HOME}/ndk/27.2.12479018" >> buildozer.spec
-          echo "android.sdk_path = ${ANDROID_HOME}" >> buildozer.spec
+          echo "android.ndk_path = ${HOME}/android-sdk/ndk/27.2.12479018" >> buildozer.spec
+          echo "android.sdk_path = ${HOME}/android-sdk" >> buildozer.spec
 
       - name: Compilar APK
         run: |
+          # Comprobar las rutas antes de compilar
+          echo "Compilando APK con Buildozer"
           buildozer -v android debug
 
