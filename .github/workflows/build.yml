@@ -1,4 +1,4 @@
-name: Android Build with Docker
+name: Android Build
 
 on:
   push:
@@ -7,25 +7,50 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        run: |
-          docker pull beeware/buildozer:1.5.0  # Imagen oficial y verificada
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Generate APK
+      - name: Setup Android environment
+        uses: gitpodify/gradle-android@v1
+        with:
+          java-version: 17
+          android-sdk-version: 34
+          ndk-version: 27.2.12479018
+          build-tools-version: 34.0.0
+
+      - name: Install system dependencies
         run: |
-          # Crear buildozer.spec si no existe
+          sudo apt-get update
+          sudo apt-get install -y \
+              zlib1g-dev \
+              libncurses5-dev \
+              libffi-dev
+
+      - name: Configure Buildozer
+        run: |
+          pip install buildozer==1.5.0 cython==0.29.36
           if [ ! -f buildozer.spec ]; then
-            docker run --rm -v "$(pwd):/app" beeware/buildozer:1.5.0 init
+            buildozer init
           fi
-          
-          # Compilar APK
-          docker run --rm \
-            -v "$(pwd):/app" \
-            -v "$HOME/.buildozer:/root/.buildozer" \
-            beeware/buildozer:1.5.0 -v android debug
+          echo "[app]
+          android.ndk_path = $ANDROID_HOME/ndk/27.2.12479018
+          android.sdk_path = $ANDROID_HOME
+          android.sdk_build_tools = 34.0.0" >> buildozer.spec
+
+      - name: Verify Android tools
+        run: |
+          ls $ANDROID_HOME/build-tools/34.0.0/aidl
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
+      - name: Build APK
+        run: |
+          buildozer -v android clean
+          buildozer -v android debug
