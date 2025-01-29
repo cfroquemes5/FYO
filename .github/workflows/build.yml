@@ -21,10 +21,12 @@ jobs:
       - name: Instalar dependencias del sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-              zlib1g-dev \
-              libncurses5-dev \
-              libffi-dev
+          sudo apt-get install -y openjdk-8-jdk
+          sudo apt-get install -y wget
+          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+          unzip commandlinetools-linux-7583922_latest.zip -d ${HOME}/android-sdk
+          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk --update
+          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "platform-tools" "platforms;android-29" "build-tools;29.0.2"
 
       - name: Instalar Buildozer
         run: |
