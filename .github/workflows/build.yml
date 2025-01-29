@@ -29,6 +29,7 @@ jobs:
       - name: Instalar Buildozer
         run: |
           pip install buildozer==1.5.0
+          pip install cython
 
       - name: Configurar NDK
         env:
