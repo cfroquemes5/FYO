@@ -40,6 +40,9 @@ jobs:
           echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=${HOME}/android-sdk/cmdline-tools/bin:${PATH}" >> $GITHUB_ENV
           
+          # Verificar que sdkmanager esté disponible en el PATH
+          which sdkmanager || echo "sdkmanager no encontrado"
+          
           # Aceptar licencias e instalar componentes del SDK
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
@@ -52,6 +55,10 @@ jobs:
         run: |
           pip install buildozer==1.5.0
           pip install cython==0.29.36
+
+      - name: Verificar instalación de Buildozer
+        run: |
+          buildozer --version || echo "Buildozer no encontrado"
 
       - name: Configurar buildozer.spec
         run: |
@@ -68,4 +75,5 @@ jobs:
           # Comprobar las rutas antes de compilar
           echo "Compilando APK con Buildozer"
           buildozer -v android debug
+
 
