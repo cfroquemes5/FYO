@@ -30,24 +30,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          ndk-version: '27.2.12479018'  # NDK compatible con Buildozer
-          build-tools-version: '34.0.0' # Versión estable (no RC)
+          ndk-version: '27.2.12479018'
+          build-tools-version: '34.0.0'
           platform-version: '34'
           cmake-version: '3.22.1'
-          licenses: true  # Aceptar licencias automáticamente
-
-      - name: Forzar aceptación de licencias
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          licenses: true
 
       - name: Configurar variables de entorno
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
           echo "PATH=$ANDROID_HOME/build-tools/34.0.0:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-
-      - name: Eliminar cachés conflictivas
-        run: |
-          rm -rf ~/.buildozer  # Limpiar configuraciones previas
 
       - name: Instalar Buildozer
         run: |
@@ -55,15 +47,12 @@ jobs:
 
       - name: Configurar buildozer.spec
         run: |
-          buildozer init  # Crear archivo si no existe
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          fi
           sed -i 's|# android.sdk_build_tools =.*|android.sdk_build_tools = 34.0.0|' buildozer.spec
           sed -i 's|# android.ndk_path =.*|android.ndk_path = '"$ANDROID_HOME"'/ndk/27.2.12479018|' buildozer.spec
           sed -i 's|# android.sdk_path =.*|android.sdk_path = '"$ANDROID_HOME"'|' buildozer.spec
-
-      - name: Verificar instalación
-        run: |
-          ls -la $ANDROID_HOME/build-tools/34.0.0  # Debe mostrar "aidl"
-          which aidl  # Debe apuntar a /home/runner/android-sdk/build-tools/34.0.0/aidl
 
       - name: Compilar APK
         run: |
