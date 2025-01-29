@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-              openjdk-17-jdk \  # Java 17 para Android moderno
+              openjdk-17-jdk \
               wget \
               unzip \
               zlib1g-dev \
@@ -35,27 +35,39 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
           
-          # Configurar variables
+          # Configurar variables de entorno
           echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=${HOME}/android-sdk/cmdline-tools/bin:${PATH}" >> $GITHUB_ENV
           
-          # Aceptar licencias e instalar componentes
+          # Aceptar licencias e instalar componentes esenciales
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           sdkmanager "ndk;27.2.12479018"  # NDK específico de GitHub Actions
 
-      - name: Instalar Buildozer
+          # Instalar AIDL (si es necesario)
+          sdkmanager "tools" "extras;android;m2repository" "extras;google;m2repository"
+          
+          # Verificar que los componentes fueron instalados correctamente
+          sdkmanager --list
+
+      - name: Instalar Buildozer y Cython
         run: |
           pip install buildozer==1.5.0
           pip install cython==0.29.36  # Versión compatible con Kivy
 
-      - name: Compilar APK
+      - name: Configurar buildozer.spec
         run: |
-          # Configurar rutas manualmente
+          # Generar y configurar el archivo buildozer.spec
           echo "[app]" > buildozer.spec
           echo "android.ndk_path = ${HOME}/android-sdk/ndk/27.2.12479018" >> buildozer.spec
           echo "android.sdk_path = ${HOME}/android-sdk" >> buildozer.spec
-          
+          echo "android.api = 34" >> buildozer.spec  # Asegurarse de que se utilice la API correcta
+          echo "android.minapi = 21" >> buildozer.spec  # Ajustar la versión mínima de la API según sea necesario
+
+      - name: Compilar APK
+        run: |
+          # Ejecutar Buildozer en modo verbose para obtener más detalles sobre el proceso
           buildozer -v android debug
+
 
