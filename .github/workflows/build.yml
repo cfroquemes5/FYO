@@ -21,32 +21,41 @@ jobs:
       - name: Instalar dependencias del sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-8-jdk
-          sudo apt-get install -y wget unzip
-          # Descargar e instalar SDK de Android
-          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-          unzip commandlinetools-linux-7583922_latest.zip -d ${HOME}/android-sdk
-          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk --update
-          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "platform-tools" "platforms;android-29" "build-tools;29.0.2" "ndk;21.4.7075529" "tools" "extras;android;m2repository" "extras;google;m2repository"
-          
-          # Asegurar que AIDL esté incluido
-          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "ndk;21.4.7075529"
-          
-          # Instalar ADB y Fastboot, necesarios para Android
-          sudo apt-get install -y android-tools-adb android-tools-fastboot
+          sudo apt-get install -y \
+              openjdk-17-jdk \  # Java 17 para Android moderno
+              wget \
+              unzip \
+              zlib1g-dev \
+              libncurses5-dev \
+              libffi-dev
 
-      - name: Instalar Buildozer y Cython
+      - name: Instalar Android SDK y Build-Tools
         run: |
-          python -m pip install --upgrade pip
-          pip install cython
+          # Descargar commandlinetools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
+          
+          # Configurar variables
+          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
+          echo "PATH=${HOME}/android-sdk/cmdline-tools/bin:${PATH}" >> $GITHUB_ENV
+          
+          # Aceptar licencias e instalar componentes
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          sdkmanager "ndk;27.2.12479018"  # NDK específico de GitHub Actions
+
+      - name: Instalar Buildozer
+        run: |
           pip install buildozer==1.5.0
-
-      - name: Configurar NDK
-        run: |
-          echo "ANDROID_NDK_HOME=${HOME}/android-sdk/ndk/21.4.7075529" >> $GITHUB_ENV
+          pip install cython==0.29.36  # Versión compatible con Kivy
 
       - name: Compilar APK
         run: |
+          # Configurar rutas manualmente
+          echo "[app]" > buildozer.spec
+          echo "android.ndk_path = ${HOME}/android-sdk/ndk/27.2.12479018" >> buildozer.spec
+          echo "android.sdk_path = ${HOME}/android-sdk" >> buildozer.spec
+          
           buildozer -v android debug
-
 
