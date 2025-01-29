@@ -10,75 +10,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar código
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias del sistema
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
               openjdk-17-jdk \
-              wget \
-              unzip \
               zlib1g-dev \
               libncurses5-dev \
               libffi-dev
 
-      - name: Crear directorio para Android SDK
-        run: |
-          mkdir -p ${HOME}/android-sdk/cmdline-tools/latest
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '27.2.12479018'
+          build-tools-version: '34.0.0'
+          platform-version: '34'
+          cmake-version: '3.22.1'
 
-      - name: Instalar Android SDK y Build-Tools
+      - name: Configure environment variables
         run: |
-          # Descargar commandlinetools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk/cmdline-tools/latest
-          
-          # Mover los archivos a la estructura correcta
-          mv ${HOME}/android-sdk/cmdline-tools/latest/cmdline-tools/* ${HOME}/android-sdk/cmdline-tools/latest/
-          rm -r ${HOME}/android-sdk/cmdline-tools/latest/cmdline-tools
-          
-          # Configurar variables
-          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${PATH}" >> $GITHUB_ENV
-          
-          # Aceptar licencias e instalar componentes
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          sdkmanager "ndk;27.2.12479018"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
-      - name: Verificar SDK
+      - name: Verify Android tools
         run: |
-          echo "ANDROID_HOME: ${ANDROID_HOME}"
-          echo "PATH: ${PATH}"
-          ls -la ${ANDROID_HOME}/cmdline-tools/latest
           sdkmanager --version
+          adb --version
 
-      - name: Instalar Buildozer y Cython
+      - name: Install Buildozer and dependencies
         run: |
-          pip install buildozer==1.5.0
-          pip install cython==0.29.36
+          pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Verificar Buildozer y Cython
-        run: |
-          buildozer --version
-          cython --version
-
-      - name: Configurar buildozer.spec
+      - name: Initialize Buildozer (if needed)
         run: |
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
-          echo "[app]" >> buildozer.spec
-          echo "android.ndk_path = ${ANDROID_HOME}/ndk/27.2.12479018" >> buildozer.spec
-          echo "android.sdk_path = ${ANDROID_HOME}" >> buildozer.spec
 
-      - name: Compilar APK
+      - name: Build APK
         run: |
           buildozer -v android debug
