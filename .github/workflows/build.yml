@@ -29,44 +29,44 @@ jobs:
               libncurses5-dev \
               libffi-dev
 
-      - name: Install Android SDK manually
+      - name: Install Android SDK
         run: |
-          # Crear estructura de directorios necesaria
-          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          # Crear estructura de directorios CORRECTA
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk/cmdline-tools
           
-          # Descargar Command Line Tools
+          # Descargar y descomprimir en estructura adecuada
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip commandlinetools-linux-10406996_latest.zip -d $HOME/android-sdk/cmdline-tools/latest
+          unzip commandlinetools-linux-10406996_latest.zip -d latest
+          rm commandlinetools-linux-10406996_latest.zip
           
-          # Configurar variables de entorno
+          # Configurar variables GLOBALES
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
           echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
-          
-          # Aceptar licencias ANTES de instalar componentes
+
+      - name: Accept licenses and install components
+        run: |
+          # Aceptar licencias SIN prompts
           yes | sdkmanager --licenses
           
-          # Instalar componentes específicos (versiones estables)
+          # Instalar componentes ESENCIALES
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          sdkmanager "ndk;27.2.12479018"
+          sdkmanager "ndk;27.2.12479018" --channel=0
 
-      - name: Verify Android installation
+      - name: Verify critical tools
         run: |
-          ls $ANDROID_HOME/build-tools/34.0.0/aidl  # Verificar existencia de aidl
+          # Verificar instalación de aidl
+          ls $ANDROID_HOME/build-tools/34.0.0/aidl
           echo "SDK Path: $ANDROID_HOME"
 
-      - name: Install Buildozer
+      - name: Set up Buildozer
         run: |
           pip install buildozer==1.5.0 cython==0.29.36
-
-      - name: Configure buildozer.spec
-        run: |
-          # Forzar configuración limpia
-          rm -f buildozer.spec
-          buildozer init
+          buildozer init || true  # Ignorar error si ya existe
           
-          # Editar archivo directamente
-          cat <<EOT >> buildozer.spec
+          # Configuración MÍNIMA necesaria
+          cat <<EOT > buildozer.spec
           [app]
           title = MyApp
           package.name = myapp
