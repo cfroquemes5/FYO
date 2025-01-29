@@ -1,4 +1,4 @@
-name: Android Build
+name: Android Build with Docker
 
 on:
   push:
@@ -13,74 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install system dependencies
+      - name: Set up Docker
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-              openjdk-17-jdk \
-              wget \
-              unzip \
-              zlib1g-dev \
-              libncurses5-dev \
-              libffi-dev
+          # Descargar imagen oficial de Buildozer
+          docker pull kivy/buildozer
 
-      - name: Install Android SDK
+      - name: Generate APK
         run: |
-          # Crear estructura de directorios CORRECTA
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
-          
-          # Descargar y descomprimir en estructura adecuada
-          wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip commandlinetools-linux-10406996_latest.zip -d latest
-          rm commandlinetools-linux-10406996_latest.zip
-          
-          # Configurar variables GLOBALES
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
+          # Crear archivo buildozer.spec si no existe
+          if [ ! -f buildozer.spec ]; then
+            docker run --rm -v "$(pwd)":/home/user/hostcwd kivy/buildozer init
+          fi
 
-      - name: Accept licenses and install components
-        run: |
-          # Aceptar licencias SIN prompts
-          yes | sdkmanager --licenses
-          
-          # Instalar componentes ESENCIALES
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          sdkmanager "ndk;27.2.12479018" --channel=0
-
-      - name: Verify critical tools
-        run: |
-          # Verificar instalación de aidl
-          ls $ANDROID_HOME/build-tools/34.0.0/aidl
-          echo "SDK Path: $ANDROID_HOME"
-
-      - name: Set up Buildozer
-        run: |
-          pip install buildozer==1.5.0 cython==0.29.36
-          buildozer init || true  # Ignorar error si ya existe
-          
-          # Configuración MÍNIMA necesaria
-          cat <<EOT > buildozer.spec
-          [app]
-          title = MyApp
-          package.name = myapp
-          package.domain = org.test
-          source.dir = .
-          version = 1.0
-          requirements = python3,kivy
-          android.ndk_path = $ANDROID_HOME/ndk/27.2.12479018
-          android.sdk_path = $ANDROID_HOME
-          android.sdk_build_tools = 34.0.0
-          android.arch = arm64-v8a
-          EOT
-
-      - name: Build APK
-        run: |
-          buildozer -v android clean
-          buildozer -v android debug
+          # Compilar APK
+          docker run --rm \
+            -v "$(pwd)":/home/user/hostcwd \
+            -v "$HOME/.buildozer":/home/user/.buildozer \
+            kivy/buildozer -v android debug
