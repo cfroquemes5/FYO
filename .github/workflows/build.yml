@@ -29,6 +29,10 @@ jobs:
               libncurses5-dev \
               libffi-dev
 
+      - name: Crear directorio para Android SDK
+        run: |
+          mkdir -p ${HOME}/android-sdk/cmdline-tools
+
       - name: Instalar Android SDK y Build-Tools
         run: |
           # Descargar commandlinetools
