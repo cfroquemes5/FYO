@@ -22,23 +22,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-8-jdk
-          sudo apt-get install -y wget
+          sudo apt-get install -y wget unzip
+          # Descargar e instalar SDK de Android
           wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
           unzip commandlinetools-linux-7583922_latest.zip -d ${HOME}/android-sdk
           yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk --update
-          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "platform-tools" "platforms;android-29" "build-tools;29.0.2"
+          yes | ${HOME}/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "platform-tools" "platforms;android-29" "build-tools;29.0.2" "ndk;21.4.7075529" "tools" "extras;android;m2repository" "extras;google;m2repository"
+          # Instalar ADB y Fastboot
+          sudo apt-get install -y android-tools-adb android-tools-fastboot
 
-      - name: Instalar Buildozer
+      - name: Instalar Buildozer y Cython
         run: |
-          pip install buildozer==1.5.0
+          python -m pip install --upgrade pip
           pip install cython
+          pip install buildozer==1.5.0
 
       - name: Configurar NDK
-        env:
-          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.2.12479018
         run: |
-          echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME}" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=${HOME}/android-sdk/ndk/21.4.7075529" >> $GITHUB_ENV
 
       - name: Compilar APK
         run: |
           buildozer -v android debug
+
