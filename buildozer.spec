@@ -41,7 +41,7 @@ android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 android.api = 30
 
 # Versión del NDK (recomendado 19b o superior)
-android.ndk = 19b
+android.ndk = 25b
 
 # Mantener la pantalla activa
 android.wakelock = True
