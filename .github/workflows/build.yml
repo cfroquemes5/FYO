@@ -35,12 +35,14 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O commandlinetools.zip
           unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools/latest
           rm commandlinetools.zip
+          
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
           echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
 
       - name: Verify sdkmanager installation
         run: |
+          ls -la $HOME/android-sdk/cmdline-tools/latest/bin/
           if [ ! -f "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
             echo "sdkmanager not found in $HOME/android-sdk/cmdline-tools/latest/bin"
             exit 1
