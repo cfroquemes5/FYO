@@ -57,7 +57,7 @@ android.console = 0
 
 # Habilitar el almacenamiento externo para Android 10+
 android.allow_backup = True
-android.arch = armeabi-v7a
+android.archs = armeabi-v7a, arm64-v8a
 
 # Configuración de Buildozer
 [buildozer]
