@@ -28,12 +28,15 @@ jobs:
               zlib1g-dev \
               libncurses5-dev \
               libffi-dev
-
       - name: Instalar Android SDK y Build-Tools
         run: |
           # Descargar commandlinetools
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
+          
+          # Crear el directorio latest y mover archivos
+          mkdir -p ${HOME}/android-sdk/cmdline-tools/latest
+          mv ${HOME}/android-sdk/cmdline-tools/* ${HOME}/android-sdk/cmdline-tools/latest/
           
           # Verificar el contenido del directorio
           ls -la ${HOME}/android-sdk/cmdline-tools/latest/bin
@@ -42,7 +45,7 @@ jobs:
           echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
           echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${PATH}" >> $GITHUB_ENV
-
+          
           # Verificar si sdkmanager está en el PATH
           which sdkmanager || echo "sdkmanager no encontrado"
           
@@ -50,15 +53,13 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           sdkmanager "ndk;27.2.12479018"
-
+          
           # Verificar que sdkmanager está funcionando
           sdkmanager --list
-
       - name: Instalar Buildozer y Cython
         run: |
           pip install buildozer==1.5.0
           pip install cython==0.29.36
-
       - name: Verificar instalación de Buildozer
         run: |
           buildozer --version || echo "Buildozer no encontrado"
@@ -71,7 +72,6 @@ jobs:
           echo "[app]" >> buildozer.spec
           echo "android.ndk_path = ${HOME}/android-sdk/ndk/27.2.12479018" >> buildozer.spec
           echo "android.sdk_path = ${HOME}/android-sdk" >> buildozer.spec
-
       - name: Compilar APK
         run: |
           buildozer -v android debug
