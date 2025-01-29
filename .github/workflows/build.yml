@@ -15,18 +15,17 @@ jobs:
 
       - name: Set up Docker
         run: |
-          # Descargar imagen oficial de Buildozer
-          docker pull kivy/buildozer
+          docker pull beeware/buildozer:1.5.0  # Imagen oficial y verificada
 
       - name: Generate APK
         run: |
-          # Crear archivo buildozer.spec si no existe
+          # Crear buildozer.spec si no existe
           if [ ! -f buildozer.spec ]; then
-            docker run --rm -v "$(pwd)":/home/user/hostcwd kivy/buildozer init
+            docker run --rm -v "$(pwd):/app" beeware/buildozer:1.5.0 init
           fi
-
+          
           # Compilar APK
           docker run --rm \
-            -v "$(pwd)":/home/user/hostcwd \
-            -v "$HOME/.buildozer":/home/user/.buildozer \
-            kivy/buildozer -v android debug
+            -v "$(pwd):/app" \
+            -v "$HOME/.buildozer:/root/.buildozer" \
+            beeware/buildozer:1.5.0 -v android debug
