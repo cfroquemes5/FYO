@@ -45,7 +45,16 @@ jobs:
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          sdkmanager "ndk;27.2.12479018"
+
+      - name: Download and setup Android NDK
+        run: |
+          mkdir -p $HOME/android-sdk/ndk/27.2.12479018
+          wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip
+          unzip -q $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip -d $HOME/android-sdk/ndk/27.2.12479018
+          mv $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b/* $HOME/android-sdk/ndk/27.2.12479018/
+          rm -rf $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b
+          rm -rf $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip
+          echo "PATH=$ANDROID_HOME/ndk/27.2.12479018:$PATH" >> $GITHUB_ENV
 
       - name: Install Buildozer
         run: |
@@ -74,14 +83,6 @@ jobs:
           android.api = 34
           android.minapi = 21
           EOT
-
-      - name: Setup Android NDK
-        run: |
-          mkdir -p $HOME/android-sdk/ndk/27.2.12479018
-          unzip -q $HOME/.buildozer/android/platform/android-ndk-r25b-linux.zip -d $HOME/android-sdk/ndk/27.2.12479018
-          mv $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b/* $HOME/android-sdk/ndk/27.2.12479018/
-          rm -rf $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b
-          echo "PATH=$ANDROID_HOME/ndk/27.2.12479018:$PATH" >> $GITHUB_ENV
 
       - name: Verify python-for-android directory
         run: |
