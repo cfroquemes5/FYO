@@ -34,8 +34,12 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
           
-          # Crear el directorio latest y mover archivos
-          mkdir -p ${HOME}/android-sdk/cmdline-tools/latest
+          # Verificar si el directorio latest ya existe
+          if [ ! -d "${HOME}/android-sdk/cmdline-tools/latest" ]; then
+            mkdir -p ${HOME}/android-sdk/cmdline-tools/latest
+          fi
+          
+          # Mover el contenido de cmdline-tools a latest
           mv ${HOME}/android-sdk/cmdline-tools/* ${HOME}/android-sdk/cmdline-tools/latest/
           
           # Verificar el contenido del directorio
