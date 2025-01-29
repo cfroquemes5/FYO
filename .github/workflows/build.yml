@@ -51,13 +51,15 @@ jobs:
         run: |
           pip install buildozer==1.5.0 cython==0.29.36
 
-      - name: Configure buildozer.spec (FIXED)
+      - name: Verify Buildozer Installation
+        run: buildozer --version
+
+      - name: Configure buildozer.spec
         run: |
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
           
-          # Configuración mínima requerida
           cat <<EOT > buildozer.spec
           [app]
           title = MyApp
@@ -72,6 +74,14 @@ jobs:
           android.api = 34
           android.minapi = 21
           EOT
+
+      - name: Verify python-for-android directory
+        run: |
+          buildozer -v android update
+          if [ ! -d ".buildozer/android/platform/python-for-android" ]; then
+            echo "python-for-android directory does not exist"
+            exit 1
+          fi
 
       - name: Build APK
         run: |
