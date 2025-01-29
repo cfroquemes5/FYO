@@ -13,51 +13,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-              openjdk-17-jdk \
               wget \
               unzip \
               zlib1g-dev \
               libncurses5-dev \
               libffi-dev
 
-      - name: Setup Android SDK (Fixed Structure)
+      - name: Setup Android SDK
         run: |
-          # Crear estructura de directorios CORRECTA
           mkdir -p $HOME/android-sdk/cmdline-tools/latest
-          
-          # Descargar y descomprimir en ubicación temporal
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d temp
-          
-          # Mover archivos a estructura oficial requerida
           mv temp/cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest
-          rm -rf temp
+          rm -rf temp commandlinetools-linux-10406996_latest.zip
           
-          # Configurar variables GLOBALES
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
           echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV  # <--- Clave para Java 17
 
-      - name: Accept licenses and install components
+      - name: Install Android components
         run: |
-          # Usar ruta completa para evitar errores
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.2.12479018"
-
-      - name: Verify installation
-        run: |
-          ls $ANDROID_HOME/build-tools/34.0.0/aidl
-          echo "SDK Path: $ANDROID_HOME"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          sdkmanager "ndk;27.2.12479018"
 
       - name: Install Buildozer
         run: |
@@ -65,19 +53,13 @@ jobs:
 
       - name: Configure buildozer.spec
         run: |
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
-          fi
+          [ ! -f buildozer.spec ] && buildozer init
           echo "[app]
           android.ndk_path = $ANDROID_HOME/ndk/27.2.12479018
           android.sdk_path = $ANDROID_HOME
           android.sdk_build_tools = 34.0.0
           android.api = 34
           android.minapi = 21" > buildozer.spec
-
-      - name: Clean previous builds
-        run: |
-          rm -rf .buildozer ~/.buildozer
 
       - name: Build APK
         run: |
