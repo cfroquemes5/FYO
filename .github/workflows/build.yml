@@ -34,21 +34,13 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip commandlinetools-linux-10406996_latest.zip -d ${HOME}/android-sdk
           
-          # Verificar si el directorio latest ya existe
-          if [ ! -d "${HOME}/android-sdk/cmdline-tools/latest" ]; then
-            mkdir -p ${HOME}/android-sdk/cmdline-tools/latest
-          fi
-          
-          # Mover el contenido de cmdline-tools a latest
-          mv ${HOME}/android-sdk/cmdline-tools/* ${HOME}/android-sdk/cmdline-tools/latest/
+          # Asignar la ruta correcta del sdkmanager
+          echo "ANDROID_HOME=${HOME}/android-sdk/cmdline-tools" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=${HOME}/android-sdk/cmdline-tools" >> $GITHUB_ENV
+          echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${PATH}" >> $GITHUB_ENV
           
           # Verificar el contenido del directorio
           ls -la ${HOME}/android-sdk/cmdline-tools/latest/bin
-          
-          # Asegurarnos de que la ruta del sdkmanager esté bien configurada
-          echo "ANDROID_HOME=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=${HOME}/android-sdk" >> $GITHUB_ENV
-          echo "PATH=${HOME}/android-sdk/cmdline-tools/latest/bin:${PATH}" >> $GITHUB_ENV
           
           # Verificar si sdkmanager está en el PATH
           which sdkmanager || echo "sdkmanager no encontrado"
@@ -75,8 +67,7 @@ jobs:
           fi
           echo "[app]" >> buildozer.spec
           echo "android.ndk_path = ${HOME}/android-sdk/ndk/27.2.12479018" >> buildozer.spec
-          echo "android.sdk_path = ${HOME}/android-sdk" >> buildozer.spec
+          echo "android.sdk_path = ${HOME}/android-sdk/cmdline-tools" >> buildozer.spec
       - name: Compilar APK
         run: |
           buildozer -v android debug
-
