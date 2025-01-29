@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,ttf,db
 version = 1.0
 
 # Requisitos de Python y librerías
-requirements = python3,kivy==2.1.0,android,pandas,openpyxl,sqlite3
+requirements = python3,kivy==2.1.0,android,numpy,pandas
 
 # Orientación de la pantalla
 orientation = portrait
