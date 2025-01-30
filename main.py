@@ -13,6 +13,7 @@ from kivy.metrics import dp, sp
 from kivy.utils import platform
 import pandas as pd
 
+# Solicitar permisos de almacenamiento en Android
 if platform == 'android':
     from android.permissions import request_permissions, Permission
     request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
@@ -121,6 +122,7 @@ class MainInterface(BoxLayout):
                        size_hint_y=None,
                        height=dp(40),
                        font_size=sp(14))
+            # self.update_route_dropdown() no necesita el argumento de la lambda
             btn.bind(on_release=lambda b: (dropdown.select(b.text), self.update_route_dropdown()))
             dropdown.add_widget(btn)
         
