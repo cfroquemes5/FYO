@@ -13,11 +13,9 @@ from kivy.metrics import dp, sp
 from kivy.utils import platform
 import pandas as pd
 
-# Solicitar permisos de almacenamiento en Android
 if platform == 'android':
     from android.permissions import request_permissions, Permission
     request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
-
 class MainInterface(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', spacing=dp(10), padding=dp(10), **kwargs)
@@ -57,8 +55,7 @@ class MainInterface(BoxLayout):
         }
         
         self.build_ui()
-
-    def build_ui(self):
+        def build_ui(self):
         # Título
         self.add_widget(Label(text="Sistema de Transporte", 
                             font_size=sp(22),
@@ -109,8 +106,7 @@ class MainInterface(BoxLayout):
         data_layout.add_widget(Button(text="EXPORTAR", on_press=self.export_data))
         data_layout.add_widget(Button(text="ELIMINAR", on_press=self.confirm_delete))
         self.add_widget(data_layout)
-
-    def create_selector(self, title, options):
+        def create_selector(self, title, options):
         main_button = Button(text=title,
                            size_hint=(1, None),
                            height=dp(45),
@@ -122,7 +118,6 @@ class MainInterface(BoxLayout):
                        size_hint_y=None,
                        height=dp(40),
                        font_size=sp(14))
-            # self.update_route_dropdown() no necesita el argumento de la lambda
             btn.bind(on_release=lambda b: (dropdown.select(b.text), self.update_route_dropdown()))
             dropdown.add_widget(btn)
         
@@ -148,8 +143,7 @@ class MainInterface(BoxLayout):
             self.buttons_group[option] = btn
         
         return grid
-
-    def initialize_database(self):
+        def initialize_database(self):
         if platform == 'android':
             from android.storage import app_storage_path
             db_dir = app_storage_path()
@@ -172,8 +166,7 @@ class MainInterface(BoxLayout):
         conn.commit()
         conn.close()
         return db_path
-
-    def set_location(self, location):
+        def set_location(self, location):
         self.selected_location = location
         self.update_route_dropdown()
 
@@ -363,9 +356,7 @@ class MainInterface(BoxLayout):
             Popup(title="Error",
                  content=Label(text=str(e)),
                  size_hint=(0.8, 0.3)).open()
-
-
-class TransportApp(App):
+            class TransportApp(App):
     def build(self):
         return MainInterface()
 
