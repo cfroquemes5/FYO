@@ -31,9 +31,12 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          mkdir -p $HOME/android-sdk/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O commandlinetools.zip
-          unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools/latest
+          unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools
+          if [ -d "$HOME/android-sdk/cmdline-tools/cmdline-tools" ]; then
+            mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          fi
           rm commandlinetools.zip
           
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
@@ -43,6 +46,10 @@ jobs:
 
       - name: Verify sdkmanager installation
         run: |
+          if [ ! -d "$HOME/android-sdk/cmdline-tools/latest/bin" ]; then
+            echo "Directory $HOME/android-sdk/cmdline-tools/latest/bin does not exist"
+            exit 1
+          fi
           ls -la $HOME/android-sdk/cmdline-tools/latest/bin/
           if [ ! -f "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
             echo "sdkmanager not found in $HOME/android-sdk/cmdline-tools/latest/bin"
