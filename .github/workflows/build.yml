@@ -31,12 +31,9 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
           wget https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O commandlinetools.zip
-          unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools
-          if [ -d "$HOME/android-sdk/cmdline-tools/cmdline-tools" ]; then
-            mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          fi
+          unzip commandlinetools.zip -d $HOME/android-sdk/cmdline-tools/latest
           rm commandlinetools.zip
           
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
