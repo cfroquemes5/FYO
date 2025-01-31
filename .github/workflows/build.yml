@@ -48,13 +48,8 @@ jobs:
 
       - name: Verify sdkmanager installation
         run: |
-          if [ ! -d "$HOME/android-sdk/cmdline-tools/latest/bin" ]; then
-            echo "Directory $HOME/android-sdk/cmdline-tools/latest/bin does not exist"
-            exit 1
-          fi
-          ls -la $HOME/android-sdk/cmdline-tools/latest/bin/
           if [ ! -f "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
-            echo "sdkmanager not found in $HOME/android-sdk/cmdline-tools/latest/bin"
+            echo "sdkmanager not found"
             exit 1
           fi
 
@@ -66,11 +61,10 @@ jobs:
       - name: Download and setup Android NDK
         run: |
           mkdir -p $HOME/android-sdk/ndk/27.2.12479018
-          wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip
-          unzip -q $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip -d $HOME/android-sdk/ndk/27.2.12479018
+          wget https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
+          unzip -q android-ndk.zip -d $HOME/android-sdk/ndk/27.2.12479018
           mv $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b/* $HOME/android-sdk/ndk/27.2.12479018/
-          rm -rf $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b
-          rm -rf $HOME/android-sdk/ndk/android-ndk-r25b-linux.zip
+          rm -rf $HOME/android-sdk/ndk/27.2.12479018/android-ndk-r25b android-ndk.zip
           echo "PATH=$ANDROID_HOME/ndk/27.2.12479018:$PATH" >> $GITHUB_ENV
 
       - name: Install Buildozer
@@ -92,21 +86,21 @@ jobs:
             buildozer init
           fi
 
-       cat <<EOT > buildozer.spec
-[app]
-title = MyApp
-package.name = myapp
-package.domain = org.example
-source.dir = .
-version = 1.0
-requirements = python3,kivy,sqlite3,pandas
-android.ndk_path = \$ANDROID_HOME/ndk/27.2.12479018
-android.sdk_path = \$ANDROID_HOME
-android.sdk_build_tools = 34.0.0
-android.api = 34
-android.minapi = 21
-android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
-EOT
+          cat <<EOT > buildozer.spec
+          [app]
+          title = MyApp
+          package.name = myapp
+          package.domain = org.example
+          source.dir = .
+          version = 1.0
+          requirements = python3,kivy,sqlite3,pandas
+          android.ndk_path = $ANDROID_HOME/ndk/27.2.12479018
+          android.sdk_path = $ANDROID_HOME
+          android.sdk_build_tools = 34.0.0
+          android.api = 34
+          android.minapi = 21
+          android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+          EOT
 
       - name: Verify python-for-android directory
         run: |
