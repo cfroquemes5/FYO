@@ -1,6 +1,3 @@
-It seems there might be an indentation issue around line 96 in your build.yml file. Let's ensure the cat <<EOT block is properly aligned. Here’s the corrected file with proper indentation:
-
-YAML
 name: Android Build
 
 on:
